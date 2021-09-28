@@ -17,7 +17,12 @@ class TestPythonBasicsOne(unittest.TestCase):
 
         self.assertEqual(pythonBasics3.starts_with_non_number("# is used to comment a line in Python"), True)
 
-        # Please add three more test cases following the order above
+        self.assertEqual(pythonBasics3.starts_with_non_number("This is the first added test case."), True)
+
+        self.assertEqual(pythonBasics3.starts_with_non_number("2 is the number test case that this one is."), False)
+
+        self.assertEqual(pythonBasics3.starts_with_non_number("This is the 3rd test case that was added."), True)
+
 
 #Test case for multiple_words
     def test_multiple_words(self):
@@ -26,13 +31,18 @@ class TestPythonBasicsOne(unittest.TestCase):
 
         self.assertEqual(pythonBasics3.multiple_words(" "), False)
 
-        self.assertEqual(pythonBasics3.multiple_words("Different\twhitespace"), False)
+        self.assertEqual(pythonBasics3.multiple_words("Different\\twhitespace"), False)
 
         self.assertEqual(pythonBasics3.multiple_words("It's-all-one-word"), False)
 
         self.assertEqual(pythonBasics3.multiple_words(" one-sided? "), False)
 
-        # Please add three more test cases following the order above
+        self.assertEqual(pythonBasics3.multiple_words("Thisisthenumberonetestcase"), False)
+
+        self.assertEqual(pythonBasics3.multiple_words("This one is the second test."), True)
+
+        self.assertEqual(pythonBasics3.multiple_words(" Oops,Ihitspace-barbeforetyping. "), False)
+
 
 
 #Test case for reserved_us_tld
