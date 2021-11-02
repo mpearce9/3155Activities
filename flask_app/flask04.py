@@ -34,27 +34,27 @@ def index():
 @app.route('/notes')
 def get_notes():
     # retrieve user
-    a_user = db.session.query(User).filter_by(email='mogli@uncc.edu')
+    a_user = db.session.query(User).filter_by(email='mpearce9@uncc.edu').one()
     # retrieve notes
     my_notes = db.session.query(Note).all()
 
-    return render_template('notes.html', notes=notes, user=a_user)
+    return render_template('notes.html', notes=my_notes, user=a_user)
 
 
 @app.route('/notes/<note_id>')
 def get_note(note_id):
     # retrieve user
-    a_user = db.session.query(User).filter_by(email='mogli@uncc.edu')
-    #retrieve note
-    my_note = db.session.query(Note).filter_by(id=note_id)
+    a_user = db.session.query(User).filter_by(email='mpearce9@uncc.edu').one()
+    # retrieve note
+    my_note = db.session.query(Note).filter_by(id=note_id).one()
 
-    return render_template('note.html', note=notes[int(note_id)], user=a_user)
+    return render_template('note.html', note=my_note, user=a_user)
 
 
 @app.route('/notes/new', methods=['GET', 'POST'])
 def new_note():
     # create mock user
-    a_user = {'name': 'Mogli', 'email': 'mogli@uncc.edu'}
+    a_user = {'name': 'Michael', 'email': 'mpearce9@uncc.edu'}
 
     # check method usef for request
     print('request method is', request.method)
