@@ -9,7 +9,7 @@ class Note(db.Model):
     date = db.Column("date", db.String(50))
     # can create a foreign key; referencing the id variable in the User class, so that is why it is lowercase u
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    comments = db.relationship("Comment", backref="note", lazy=True)
+    comments = db.relationship("Comment", backref="note", cascade="all, delete-orphan", lazy=True)
 
     def __init__(self, title, text, date, user_id):
         self.title = title
