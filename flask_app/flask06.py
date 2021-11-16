@@ -10,7 +10,8 @@ from flask import redirect, url_for
 from database import db
 from models import Note as Note
 from models import User as User
-from forms import RegisterForm
+from models import Comment as Comment
+from forms import RegisterForm, CommentForm
 from flask import session
 from forms import LoginForm
 
@@ -58,7 +59,10 @@ def get_note(note_id):
         # retrieve note
         my_note = db.session.query(Note).filter_by(id=note_id).one()
 
-        return render_template('note.html', note=my_note, user=['user'])
+        # create a comment form object
+        form = CommentForm()
+
+        return render_template('note.html', note=my_note, user=['user'], form=form)
     else:
         return render_template('login.html')
 
@@ -134,6 +138,24 @@ def new_note():
             return render_template('new.html', user=['user'])
     else:
         # user is not in session redirect to login
+        return redirect(url_for('login'))
+
+
+@app.route('/notes/<note_id>/comment', methods=['POST'])
+def new_comment(note_id):
+    if session.get('user'):
+        comment_form = CommentForm()
+        # validate_on_submit only validates using POST
+        if comment_form.validate_on_submit():
+            # get comment data
+            comment_text = request.form['comment']
+            new_record = Comment(comment_text, int(note_id), session['user_id'])
+            db.session.add(new_record)
+            db.session.commit()
+
+        return redirect(url_for('get_note', note_id=note_id))
+
+    else:
         return redirect(url_for('login'))
 
 
