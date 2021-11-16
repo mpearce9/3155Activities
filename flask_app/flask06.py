@@ -1,7 +1,8 @@
 # FLASK Tutorial 1 -- We show the bare bones code to get an app up and running
 
 # imports
-import os                 # os is used to get environment variables IP & PORT
+import os     # os is used to get environment variables IP & PORT
+import bcrypt
 from flask import Flask   # Flask is the web app that we will customize
 from flask import render_template
 from flask import request
@@ -9,10 +10,14 @@ from flask import redirect, url_for
 from database import db
 from models import Note as Note
 from models import User as User
+from forms import RegisterForm
+from flask import session
+
 
 app = Flask(__name__)     # create an app
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///flask_note_app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'SE3155'
 #  Bind SQLAlchemy db object to this Flask app
 db.init_app(app)
 # Setup models
@@ -33,12 +38,15 @@ def index():
 
 @app.route('/notes')
 def get_notes():
-    # retrieve user
-    a_user = db.session.query(User).filter_by(email='mpearce9@uncc.edu').one()
-    # retrieve notes
-    my_notes = db.session.query(Note).all()
+    # retrieve user from database
+    # check if a user is saved in session
+    if session.get('user'):
+        # retrieve notes from database
+        my_notes = db.session.query(Note).filter_by(user_id=session['user_id']).all()
 
-    return render_template('posts.html', notes=my_notes, user=a_user)
+        return render_template('notes.html', notes=my_notes, user=session['user'])
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/notes/<note_id>')
@@ -48,7 +56,8 @@ def get_note(note_id):
     # retrieve note
     my_note = db.session.query(Note).filter_by(id=note_id).one()
 
-    return render_template('post.html', note=my_note, user=a_user)
+    return render_template('note.html', note=my_note, user=a_user)
+
 
 @app.route('/notes/edi/<note_id>', methods=['GET', 'POST'])
 def update_note(note_id):
@@ -77,6 +86,7 @@ def update_note(note_id):
 
         return render_template('new.html', note=my_note, user=a_user)
 
+
 @app.route('/notes/delete/<note_id>', methods=['POST'])
 def delete_note(note_id):
     # retrieve note from database
@@ -85,6 +95,7 @@ def delete_note(note_id):
     db.session.commit()
 
     return redirect(url_for('get_notes'))
+
 
 @app.route('/notes/new', methods=['GET', 'POST'])
 def new_note():
@@ -111,6 +122,32 @@ def new_note():
     else:
         a_user = db.session.query(User).filter_by(email='mogli@uncc.edu')
         return render_template('new.html', user=a_user)
+
+
+@app.route('/register', methods=['POST', 'GET'])
+def register():
+    form = RegisterForm()
+
+    if request.method == 'POST' and form.validate_on_submit():
+        # salt and hash password
+        h_password = bcrypt.hashpw(
+            request.form['password'].encode('utf-8'), bcrypt.gensalt())
+        # get entered user data
+        first_name = request.form['firstname']
+        last_name = request.form['lastname']
+        # create user model
+        new_user = User(first_name, last_name, request.form['email'], h_password)
+        # add user to database and commit
+        db.session.add(new_user)
+        db.session.commit()
+        # save the user's name to the session
+        session['user'] = first_name
+        session['user_id'] = new_user.id  # access id value from user model of this newly added user
+        # show user dashboard view
+        return redirect(url_for('get_notes'))
+
+    # something went wrong - display register view
+    return render_template('register.html', form=form)
 
 
 app.run(host=os.getenv('IP', '127.0.0.1'), port=int(os.getenv('PORT', 5000)), debug=True)
